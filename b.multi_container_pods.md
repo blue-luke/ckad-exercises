@@ -3,6 +3,16 @@
 
 ### Create a Pod with two containers, both with image busybox and command "echo hello; sleep 3600". Connect to the second container and run 'ls'
 
+k run pod --image=busybox --restart=Never --dry-run=client -o yaml --command -- /bin/sh -c "echo hello; sleep 3600" >> 
+./files/2.yaml
+
+Then I created a 2nd container
+
+An issue with the restart policy
+
+k exec -it -- /bin/sh
+The -- means that args are following. Knowledge is coming full circle 
+
 <details><summary>show</summary>
 <p>
 
@@ -51,6 +61,12 @@ kubectl delete po busybox
 </details>
 
 ### Create a pod with an nginx container exposed on port 80. Add a busybox init container which downloads a page using "wget -O /work-dir/index.html http://neverssl.com/online". Make a volume of type emptyDir and mount it in both containers. For the nginx container, mount it on "/usr/share/nginx/html" and for the initcontainer, mount it on "/work-dir". When done, get the IP of the created pod and create a busybox pod and run "wget -O- IP"
+
+Created single yaml, edited to add another container and command
+
+restartPlicy changed to Never, for the pod so it applies to containers. Added in emptyDir and volumeMount
+
+Pingpod wasn't temporary,
 
 <details><summary>show</summary>
 <p>
@@ -144,3 +160,4 @@ kubectl delete po box
 </p>
 </details>
 
+Temporary ping pod. How to raise, carry out command, and remove in one line. See line 154
