@@ -13,6 +13,8 @@ kubernetes.io > Documentation > Tasks > Access Applications in a Cluster > [Use 
 
 ### Create a namespace called 'mynamespace' and a pod with image nginx called nginx on this namespace
 
+Done
+
 <details><summary>show</summary>
 <p>
 
@@ -25,6 +27,10 @@ kubectl run nginx --image=nginx --restart=Never -n mynamespace
 </details>
 
 ### Create the pod that was just described using YAML
+
+1.yaml
+
+Not sure why we need to specify --restart=Never
 
 <details><summary>show</summary>
 <p>
@@ -74,6 +80,16 @@ kubectl run nginx --image=nginx --restart=Never --dry-run=client -o yaml | kubec
 
 ### Create a busybox pod (using kubectl command) that runs the command "env". Run it and see the output
 
+k run busybox --image=busybox --restart=Never -- env 
+k run busybox --image=busybox --restart=Never --command -- env
+k logs busybox
+Command is the programme you run
+Arguments is anything you send to the programme
+Eg git is the command
+and status is the argument
+
+Add in restart=Never, otherwise it'll complete the command then go into crashLoopBackOff. This could have been the problem with multi-container pods
+
 <details><summary>show</summary>
 <p>
 
@@ -89,6 +105,8 @@ kubectl logs busybox
 </details>
 
 ### Create a busybox pod (using YAML) that runs the command "env". Run it and see the output
+
+Should be fine - --dry-run=client -o yaml, then k apply -f NAME
 
 <details><summary>show</summary>
 <p>
@@ -131,6 +149,8 @@ kubectl logs busybox
 
 ### Get the YAML for a new namespace called 'myns' without creating it
 
+Fine
+
 <details><summary>show</summary>
 <p>
 
@@ -143,6 +163,9 @@ kubectl create namespace myns -o yaml --dry-run=client
 
 ### Get the YAML for a new ResourceQuota called 'myrq' with hard limits of 1 CPU, 1G memory and 2 pods without creating it
 
+k create quota myrw --hard=cpu=1,memory=1Gi,pods=2 --dry-run-client -o yaml
+Use the kubectl reference
+
 <details><summary>show</summary>
 <p>
 
@@ -154,6 +177,9 @@ kubectl create quota myrq --hard=cpu=1,memory=1G,pods=2 --dry-run=client -o yaml
 </details>
 
 ### Get pods on all namespaces
+
+k get po -A
+I did k get all -A initially. Read the question more carefully
 
 <details><summary>show</summary>
 <p>
@@ -171,6 +197,9 @@ kubectl get po -A
 
 ### Create a pod with image nginx called nginx and expose traffic on port 80
 
+k run nginx --image=nginx --port=80
+Do I need --restart=Never?
+
 <details><summary>show</summary>
 <p>
 
@@ -182,6 +211,8 @@ kubectl run nginx --image=nginx --restart=Never --port=80
 </details>
 
 ### Change pod's image to nginx:1.7.1. Observe that the container will be restarted as soon as the image gets pulled
+
+k set image pod nginx nginx=nginx:1.7.1
 
 <details><summary>show</summary>
 <p>
@@ -220,6 +251,10 @@ kubectl get po nginx -o jsonpath='{.spec.containers[].image}{"\n"}'
 
 ### Get nginx pod's ip created in previous step, use a temp busybox image to wget its '/'
 
+Temporary pod command single line
+
+RETURN TO - interesting stuff here, in one line
+
 <details><summary>show</summary>
 <p>
 
@@ -249,6 +284,8 @@ kubectl run busybox --image=busybox --rm -it --restart=Never -- wget -O- $(kubec
 
 ### Get pod's YAML
 
+Fine
+
 <details><summary>show</summary>
 <p>
 
@@ -267,6 +304,10 @@ kubectl get po nginx --output=yaml
 
 ### Get information about the pod, including details about potential issues (e.g. pod hasn't started)
 
+k describe
+k get
+k logs
+
 <details><summary>show</summary>
 <p>
 
@@ -279,6 +320,8 @@ kubectl describe po nginx
 
 ### Get pod logs
 
+Fine
+
 <details><summary>show</summary>
 <p>
 
@@ -290,6 +333,8 @@ kubectl logs nginx
 </details>
 
 ### If pod crashed and restarted, get logs about the previous instance
+
+-p flag
 
 <details><summary>show</summary>
 <p>
@@ -305,6 +350,8 @@ kubectl logs nginx --previous
 
 ### Execute a simple shell on the nginx pod
 
+Fine
+
 <details><summary>show</summary>
 <p>
 
@@ -316,6 +363,10 @@ kubectl exec -it nginx -- /bin/sh
 </details>
 
 ### Create a busybox pod that echoes 'hello world' and then exits
+
+k run tmp --image=busybox --restart=Never -- echo hello world
+
+I don't see why or how their version echoes to my local command line
 
 <details><summary>show</summary>
 <p>
@@ -331,6 +382,8 @@ kubectl run busybox --image=busybox -it --restart=Never -- /bin/sh -c 'echo hell
 
 ### Do the same, but have the pod deleted automatically when it's completed
 
+Fine, but couldn't reproduce without spending 5 minutes googling
+
 <details><summary>show</summary>
 <p>
 
@@ -343,6 +396,11 @@ kubectl get po # nowhere to be found :)
 </details>
 
 ### Create an nginx pod and set an env value as 'var1=val1'. Check the env value existence within the pod
+
+k run nginx --image=nginx --env="var1=val1"
+"" Not necessary
+k exec -it nginx -- /bin/sh
+echo $var
 
 <details><summary>show</summary>
 <p>
@@ -361,3 +419,10 @@ kubectl run nginx --restart=Never --image=nginx --env=var1=val1 -it --rm -- env
 
 </p>
 </details>
+
+
+Return to:
+- Stuff on one line
+- Commands and args. The difference. How to use declaratively, how to use imperatively
+- Use of --rm
+- -- wget -O- 10.1.1.131:80
