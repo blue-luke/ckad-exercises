@@ -14,6 +14,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 ### Create 3 pods with names nginx1,nginx2,nginx3. All of them should have the label app=v1
 
+k run nginx1 --image=nginx --labels=app=v1 
+etc
+
 <details><summary>show</summary>
 <p>
 
@@ -30,6 +33,8 @@ for i in `seq 1 3`; do kubectl run nginx$i --image=nginx -l app=v1 ; done
 
 ### Show all labels of the pods
 
+k get pod --show-labels
+
 <details><summary>show</summary>
 <p>
 
@@ -42,6 +47,9 @@ kubectl get po --show-labels
 
 ### Change the labels of pod 'nginx2' to be app=v2
 
+k edit pod nginx1
+or k label --overwrite
+
 <details><summary>show</summary>
 <p>
 
@@ -53,6 +61,9 @@ kubectl label po nginx2 app=v2 --overwrite
 </details>
 
 ### Get the label 'app' for the pods (show a column with APP labels)
+
+I didn't know this. Also didn't understand.
+But the task is to add a custom colum ot the output, with the label key as the column heading, and the label value as the row entry
 
 <details><summary>show</summary>
 <p>
@@ -67,6 +78,11 @@ kubectl get po --label-columns=app
 </details>
 
 ### Get only the 'app=v2' pods
+
+Extrapolated and thought that $ k get pod -L app=v2 - would work
+But it has to be $ k get pod -l app=v2
+-L is for lable columns, so -L app=v2 wouldn't work
+-l is for using the label as a selector, so -l app=v2 would work
 
 <details><summary>show</summary>
 <p>
@@ -84,6 +100,8 @@ kubectl get po --selector=app=v2
 
 ### Add a new label tier=web to all pods having 'app=v2' or 'app=v1' labels
 
+Didn't know how to do this at all
+
 <details><summary>show</summary>
 <p>
 
@@ -96,6 +114,11 @@ kubectl label po -l "app in(v1,v2)" tier=web
 
 ### Add an annotation 'owner: marketing' to all pods having 'app=v2' label
 
+k annotate po -l "app in(v2)" owner=marketing
+or
+kubectl annotate po -l "app=v2" owner=marketing
+k annotate pod nginx1 --list
+
 <details><summary>show</summary>
 <p>
 
@@ -106,6 +129,12 @@ kubectl annotate po -l "app=v2" owner=marketing
 </details>
 
 ### Remove the 'app' label from the pods we created before
+
+Took a while to figure out:
+k label po -l app=v2 app-
+Ie select all pods with this label, relabel them, but remove the label altogether. app-
+Can just select all pods with that label key:
+k label po -l app app-
 
 <details><summary>show</summary>
 <p>
@@ -122,6 +151,12 @@ kubectl label po -l app app-
 </details>
 
 ### Create a pod that will be deployed to a Node that has the label 'accelerator=nvidia-tesla-p100'
+
+Create yaml -o yaml
+Add in nodeSelector
+see ./files/4.yaml
+Not applying as there's no node with that label
+Could have easily labelled a node though - k labels nodes NAME key=value
 
 <details><summary>show</summary>
 <p>
@@ -181,6 +216,19 @@ spec:
 
 ### Annotate pods nginx1, nginx2, nginx3 with "description='my description'" value
 
+k annotate pod nginx1 description="my description"
+or
+k annotate pod -l tier description="my descriptions" --overwrite=true
+This selects all pods with a certain label, annotates and overwrites if the annotation key is already present
+List annotations:
+k annotate pod nginx1 --list
+
+How can I list all pods and their annotations? See below
+
+Listing by annotation is more complex:
+$ kubectl get service -A -o jsonpath='{.items[?(@.metadata.annotations.prometheus\.io/scrape)].metadata.name}'
+List names of all pods with this annotation$ kubectl get pod -A -o jsonpath='{.items[?(@.metadata.annotations.description)].metadata.name}'
+
 <details><summary>show</summary>
 <p>
 
@@ -197,6 +245,10 @@ kubectl annotate po nginx{1..3} description='my description'
 </details>
 
 ### Check the annotations for pod nginx1
+
+k annotate pod nginx1 --list
+or
+k describe pod nginx1 | grep -i "annotations"
 
 <details><summary>show</summary>
 <p>
@@ -219,6 +271,8 @@ As an alternative to using `| grep` you can use jsonPath like `kubectl get po ng
 </details>
 
 ### Remove the annotations for these three pods
+
+k annotate pod nginx1 NAME2 NAME3 owner-  
 
 <details><summary>show</summary>
 <p>
@@ -247,6 +301,8 @@ kubectl delete po nginx{1..3}
 kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment)
 
 ### Create a deployment with image nginx:1.18.0, called nginx, having 2 replicas, defining port 80 as the port that this container exposes (don't create a service for this deployment)
+
+k create deployment nginx --image=nginx:1.18.0 --replicas=2 --port=80   
 
 <details><summary>show</summary>
 <p>
@@ -288,6 +344,10 @@ kubectl get deploy nginx -o yaml
 </details>
 
 ### View the YAML of the replica set that was created by this deployment
+
+k get deploy nginx -o yaml | grep -i "replicaset"
+
+nginx-67dfd6c8f9
 
 <details><summary>show</summary>
 <p>
@@ -334,6 +394,15 @@ kubectl rollout status deploy nginx
 
 ### Update the nginx image to nginx:1.19.8
 
+Took me a while to find:
+k set image deploy/nginx nginx="nginx:1.19.8"
+
+set image
+
+Need to know name of container in the pod/deployment
+Can select all using *
+Can also change image en masse: $ kubectl set image deployments,rc nginx=nginx:1.9.1 --all
+
 <details><summary>show</summary>
 <p>
 
@@ -365,6 +434,8 @@ kubectl get po
 
 ### Undo the latest rollout and verify that new pods have the old image (nginx:1.18.0)
 
+k undo rollout deploy/NAME [--to-revision=x]
+
 <details><summary>show</summary>
 <p>
 
@@ -379,6 +450,8 @@ kubectl describe po nginx-5ff4457d65-nslcl | grep -i image # should be nginx:1.1
 </details>
 
 ### Do an on purpose update of the deployment with a wrong image nginx:1.91
+
+
 
 <details><summary>show</summary>
 <p>
@@ -411,6 +484,10 @@ kubectl get po # you'll see 'ErrImagePull' or 'ImagePullBackOff'
 
 ### Return the deployment to the second revision (number 2) and verify the image is nginx:1.19.8
 
+k rollout history deploy/nginx --revision=2
+
+k rollout undo deploy/nginx --to-revision=2
+
 <details><summary>show</summary>
 <p>
 
@@ -425,6 +502,8 @@ kubectl rollout status deploy nginx # Everything should be OK
 
 ### Check the details of the fourth revision (number 4)
 
+k rollout history deploy/nginx --revision=4
+
 <details><summary>show</summary>
 <p>
 
@@ -436,6 +515,8 @@ kubectl rollout history deploy nginx --revision=4 # You'll also see the wrong im
 </details>
 
 ### Scale the deployment to 5 replicas
+
+k scale deploy nginx --replicas=5
 
 <details><summary>show</summary>
 <p>
@@ -451,6 +532,9 @@ kubectl describe deploy nginx
 
 ### Autoscale the deployment, pods between 5 and 10, targetting CPU utilization at 80%
 
+k autoscale deployment nginx --min=5 --max=10 --cpu-percent=80  
+This creates an hpa object, horizontal pod autoscaler
+
 <details><summary>show</summary>
 <p>
 
@@ -465,6 +549,8 @@ kubectl get hpa nginx
 
 ### Pause the rollout of the deployment
 
+k rollout pause deploy nginx 
+
 <details><summary>show</summary>
 <p>
 
@@ -476,6 +562,10 @@ kubectl rollout pause deploy nginx
 </details>
 
 ### Update the image to nginx:1.19.9 and check that there's nothing going on, since we paused the rollout
+
+k set image deploy nginx nginx=nginx:1.19.9
+
+k rollout status deploy nginx 
 
 <details><summary>show</summary>
 <p>
@@ -492,6 +582,8 @@ kubectl rollout history deploy nginx # no new revision
 </details>
 
 ### Resume the rollout and check that the nginx:1.19.9 image has been applied
+
+k rollout resume deploy nginx 
 
 <details><summary>show</summary>
 <p>
@@ -522,6 +614,14 @@ kubectl delete deploy/nginx hpa/nginx
 
 ### Implement canary deployment by running two instances of nginx marked as version=v1 and version=v2 so that the load is balanced at 75%-25% ratio
 
+See ./files/5.yaml
+
+Eventually got there. Made a mess with selectors so the curl wasn't working, took a few minutes to figure it out
+
+Create two deployments, imperative
+Added labels, imperative
+Created service, declarative, added in selector before applying
+Test using a pingpod? Connection refused
 <details><summary>show</summary>
 <p>
 
@@ -666,6 +766,10 @@ version-2
 
 ### Create a job named pi with image perl that runs the command with arguments "perl -Mbignum=bpi -wle 'print bpi(2000)'"
 
+Create yaml, k create job etc, then add in command manually
+Pod didn't initialise. I then specified which perl image I wanted, and it worked
+Can also add in the command imperatively
+
 <details><summary>show</summary>
 <p>
 
@@ -706,6 +810,10 @@ kubectl delete job pi
 </details>
 
 ### Create a job with the image busybox that executes the command 'echo hello;sleep 30;echo world'
+
+k create job job --image=busybox --dry-run=client -o yaml  -- /bin/sh -c 'echo hello;sleep 30;echo world' > ./files/7.yaml 
+
+Don't forget to add in /bin/sh -c 
 
 <details><summary>show</summary>
 <p>
@@ -758,6 +866,8 @@ kubectl delete job busybox
 
 ### Create a job but ensure that it will be automatically terminated by kubernetes if it takes more than 30 seconds to execute
 
+just add in .spec.activeDeadlineSeconds
+
 <details><summary>show</summary>
 <p>
 
@@ -799,6 +909,8 @@ status: {}
 </details>
 
 ### Create the same job, make it run 5 times, one after the other. Verify its status and delete it
+
+spec.completions
 
 <details><summary>show</summary>
 <p>
@@ -853,6 +965,10 @@ kubectl delete jobs busybox
 </details>
 
 ### Create the same job, but make it run 5 parallel times
+
+10.yaml
+Parallelism
+But not 5 completions?!
 
 <details><summary>show</summary>
 <p>
@@ -910,6 +1026,10 @@ kubectl delete job busybox
 kubernetes.io > Documentation > Tasks > Run Jobs > [Running Automated Tasks with a CronJob](https://kubernetes.io/docs/tasks/job/automated-tasks-with-cron-jobs/)
 
 ### Create a cron job with image busybox that runs on a schedule of "*/1 * * * *" and writes 'date; echo Hello from the Kubernetes cluster' to standard output
+
+k create cronjob cj --image=busybox --schedule="*/1 * * * *" -- /bin/sh -c "date; echo Hello from the kubernetes cluster"
+
+Wow, I didn't realise I could create so many things from the command line, either directly, or to produce the basic yaml that I can modify with vi the apply using k apply -f FILE
 
 <details><summary>show</summary>
 <p>
@@ -984,6 +1104,8 @@ status: {}
 
 ### Create a cron job with image busybox that runs every minute and writes 'date; echo Hello from the Kubernetes cluster' to standard output. The cron job should be terminated if it successfully starts but takes more than 12 seconds to complete execution.
 
+k explain cronjob.spec.jobTemplate.spec
+
 <details><summary>show</summary>
 <p>
 
@@ -1025,3 +1147,10 @@ status: {}
 
 </p>
 </details>
+
+
+Summary:
+Return to line 101, ### Add a new label tier=web to all pods having 'app=v2' or 'app=v1' labels
+Line 189 - Don't forget to use kubectl explain po.spec; this list all the things that can come under po.spec, eg po.spec.containers
+kubectl rollout status deploy nginx
+k explain cronjob.spec.jobTemplate.spec This gets you information on the definable fields

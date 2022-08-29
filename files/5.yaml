@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: banana
+  name: banana
+spec:
+  selector:
+    app: "1"
+    app: "2"
+  ports:
+  - name: 80-80
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  type: ClusterIP
+status:
+  loadBalancer: {}
