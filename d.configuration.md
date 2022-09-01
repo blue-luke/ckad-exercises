@@ -17,6 +17,8 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 ### Create a configmap named config with values foo=lala,foo2=lolo
 
+k create configmap config --from-literal=foo=lala --from-literal=foo2=lolo 
+
 <details><summary>show</summary>
 <p>
 
@@ -31,6 +33,8 @@ kubectl create configmap config --from-literal=foo=lala --from-literal=foo2=lolo
 
 <details><summary>show</summary>
 <p>
+
+k get configmap config -o yaml | grep -i data -A 5 -B 5
 
 ```bash
 kubectl get cm config -o yaml
@@ -62,6 +66,12 @@ kubectl get cm configmap2 -o yaml
 
 ### Create and display a configmap from a .env file
 
+PASSWORD=123
+USERNAME=abc
+in 12.env
+
+k create configmap config --from-env-file=./files/12.env
+
 Create the file with the command
 
 ```bash
@@ -81,7 +91,7 @@ kubectl get cm configmap3 -o yaml
 
 ### Create and display a configmap from a file, giving the key 'special'
 
-Create the file with
+Create the file with --from-file=special=PATH
 
 ```bash
 echo -e "var3=val3\nvar4=val4" > config4.txt
@@ -100,6 +110,10 @@ kubectl get cm configmap4 -o yaml
 </details>
 
 ### Create a configMap called 'options' with the value var5=val5. Create a new nginx pod that loads the value from variable 'var5' in an env variable called 'option'
+
+CM is $ k create configmap options --from-literal=var5=val5
+See 13.yaml for pod
+Exec onto it to check, $ echo $option
 
 <details><summary>show</summary>
 <p>
@@ -144,7 +158,9 @@ kubectl exec -it nginx -- env | grep option # will show 'option=val5'
 </details>
 
 ### Create a configMap 'anotherone' with values 'var6=val6', 'var7=val7'. Load this configMap as env variables into a new nginx pod
-
+k create configmap anotherone --from-literal=var6=val6 --from-literal=var7=val7
+14.yaml
+Needed to use envFrom. This wasn't on the configmap webpage, rather on https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/
 <details><summary>show</summary>
 <p>
 
@@ -184,7 +200,12 @@ kubectl exec -it nginx -- env
 </p>
 </details>
 
+Got to here
+
 ### Create a configMap 'cmvolume' with values 'var8=val8', 'var9=val9'. Load this as a volume inside an nginx pod on path '/etc/lala'. Create the pod and 'ls' into the '/etc/lala' directory.
+
+See 15.yaml for config map
+See 16.yaml for pod with volume and mounted map
 
 <details><summary>show</summary>
 <p>
@@ -238,6 +259,8 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 ### Create the YAML for an nginx pod that runs with the user ID 101. No need to create the pod
 
+See 17.yaml 
+
 <details><summary>show</summary>
 <p>
 
@@ -272,6 +295,9 @@ status: {}
 
 
 ### Create the YAML for an nginx pod that has the capabilities "NET_ADMIN", "SYS_TIME" added to its single container
+
+18.yaml
+--restart=Never It would be better to add this
 
 <details><summary>show</summary>
 <p>
@@ -311,6 +337,10 @@ status: {}
 kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Assign CPU Resources to Containers and Pods](https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/)
 
 ### Create an nginx pod with requests cpu=100m,memory=256Mi and limits cpu=200m,memory=512Mi
+
+k create deployment deploy --image=nginx
+k set resources deploy deploy --limits=cpu=200m,memory=512Mi --requests=cpu=100m,memory=256Mi
+Be careful - pod name is different, so I might not get marks for this. Best to edit the pod yaml directly
 
 <details><summary>show</summary>
 <p>
@@ -355,6 +385,8 @@ kubernetes.io > Documentation > Tasks > Inject Data Into Applications > [Distrib
 
 ### Create a secret called mysecret with the values password=mypass
 
+k create secret generic mysecret --from-literal=password=mypass
+
 <details><summary>show</summary>
 <p>
 
@@ -366,6 +398,9 @@ kubectl create secret generic mysecret --from-literal=password=mypass
 </details>
 
 ### Create a secret called mysecret2 that gets key/value from a file
+
+cat key=value >> ./files/19.txt
+k create secret generic mysecret2 --from-file=./files/19.txt 
 
 Create a file called username with the value admin:
 
@@ -384,6 +419,10 @@ kubectl create secret generic mysecret2 --from-file=username
 </details>
 
 ### Get the value of mysecret2
+
+I was looking for the secret in the wrong place
+k get secret mysecret2 -o yaml 
+echo VALUE | base64 -d
 
 <details><summary>show</summary>
 <p>
@@ -415,6 +454,12 @@ kubectl get secret mysecret2 -o json | jq -r .data.username | base64 -d  # on MA
 </details>
 
 ### Create an nginx pod that mounts the secret mysecret2 in a volume on path /etc/foo
+
+Create yaml
+Add in volume manually
+20.yaml
+Ensure correct secret reference
+Verified
 
 <details><summary>show</summary>
 <p>
@@ -461,6 +506,11 @@ cat /etc/foo/username # shows admin
 </details>
 
 ### Delete the pod you just created and mount the variable 'username' from secret mysecret2 onto a new nginx pod in env variable called 'USERNAME'
+
+Unknown CreateContainerConfigError
+Perhaps the filename needs to be the key and the contents needs to be the value? Implied above
+Perhaps return to
+Returned to and confirmed. Filename needs to be key. Contents needs to be value
 
 <details><summary>show</summary>
 <p>
@@ -510,6 +560,8 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 ### See all the service accounts of the cluster in all namespaces
 
+k get sa -A
+
 <details><summary>show</summary>
 <p>
 
@@ -526,6 +578,8 @@ kubectl get sa -A
 </details>
 
 ### Create a new serviceaccount called 'myuser'
+
+k create sa myuser
 
 <details><summary>show</summary>
 <p>
@@ -557,6 +611,10 @@ kubectl create -f sa.yaml
 </details>
 
 ### Create an nginx pod that uses 'myuser' as a service account
+
+Imperative yaml, then edit
+22.yaml
+Specifying serviceAccount or serviceAccountName is permissible. Still not sure what the difference is
 
 <details><summary>show</summary>
 <p>
@@ -616,3 +674,7 @@ kubectl describe pod nginx # will see that a new secret called myuser-token-****
 
 </p>
 </details>
+
+
+
+Line 512, error with secrets
