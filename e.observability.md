@@ -7,6 +7,9 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 ### Create an nginx pod with a liveness probe that just runs the command 'ls'. Save its YAML in pod.yaml. Run it, check its probe status, delete it.
 
+23.yaml
+Dont have evidence that the livenessprobe worked. The instructions just ask for the config of it
+
 <details><summary>show</summary>
 <p>
 
@@ -48,6 +51,8 @@ kubectl delete -f pod.yaml
 </details>
 
 ### Modify the pod.yaml file so that liveness probe starts kicking in after 5 seconds whereas the interval between probes would be 5 seconds. Run it, check the probe, delete it.
+
+24.yaml
 
 <details><summary>show</summary>
 <p>
@@ -91,6 +96,8 @@ kubectl delete -f pod.yaml
 </details>
 
 ### Create an nginx pod (that includes port 80) with an HTTP readinessProbe on path '/' on port 80. Again, run it, check the readinessProbe, delete it.
+
+25.yaml
 
 <details><summary>show</summary>
 <p>
@@ -136,6 +143,18 @@ kubectl delete -f pod.yaml
 
 ### Lots of pods are running in `qa`,`alan`,`test`,`production` namespaces.  All of these pods are configured with liveness probe.  Please list all pods whose liveness probe are failed in the format of `<namespace>/<pod name>` per line.
 
+Don't forget k get events
+No need to write to file
+Can grep for -i 'Liveness probe failed'
+This produces a table
+Then | awk '{print $1,$5}'
+
+Select all pods. Fine
+In these 4 namespaces. Manually, write to a file
+Filter for a liveness = failed. No idea. Perhaps filter by available? Is this a label?
+List as namespace/pod name. No idea
+
+
 <details><summary>show</summary>
 <p>
 
@@ -158,6 +177,14 @@ kubectl get events -A | grep -i "Liveness probe failed" | awk '{print $1,$5}'
 
 ### Create a busybox pod that runs 'i=0; while true; do echo "$i: $(date)"; i=$((i+1)); sleep 1; done'. Check its logs
 
+26.yaml
+Use:
+command:
+- /bin/sh
+- -c
+- 'your stuff here'
+YOu can also do it in one line
+
 <details><summary>show</summary>
 <p>
 
@@ -172,6 +199,13 @@ kubectl logs busybox -f # follow the logs
 ## Debugging
 
 ### Create a busybox pod that runs 'ls /notexist'. Determine if there's an error (of course there is), see it. In the end, delete the pod
+
+k run pod --image=busybox --restart=Never -- /bin/sh -c 'ls /notexist'
+
+Server connection problems
+Checked GCP service status
+Checked GCP free account hadn't expired
+Just need to gcloud auth login
 
 <details><summary>show</summary>
 <p>
@@ -188,6 +222,10 @@ kubectl delete po busybox
 </details>
 
 ### Create a busybox pod that runs 'notexist'. Determine if there's an error (of course there is), see it. In the end, delete the pod forcefully with a 0 grace period
+
+k delete pod pod --force --grace-period=0
+
+I'm not getting the error
 
 <details><summary>show</summary>
 <p>
@@ -207,6 +245,8 @@ kubectl delete po busybox --force --grace-period=0
 
 ### Get CPU/memory utilization for nodes ([metrics-server](https://github.com/kubernetes-incubator/metrics-server) must be running)
 
+Fine
+
 <details><summary>show</summary>
 <p>
 
@@ -216,3 +256,7 @@ kubectl top nodes
 
 </p>
 </details>
+
+Return to 144. A new skill to learn, filtering pods. My weakness here is probably my scripting
+
+Return to 186, doing stuff in one line
