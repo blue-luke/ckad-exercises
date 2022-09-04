@@ -3,6 +3,8 @@
 
 ### Create a pod with image nginx called nginx and expose its port 80
 
+If you add --expose, you can create a service at the same time. The svc and the pod occupy the same yaml. The svc is a clusterip. This can be a massive time saver. I wonder if you can do the same with deployments - no, the flag is unknown
+
 <details><summary>show</summary>
 <p>
 
@@ -17,6 +19,9 @@ kubectl run nginx --image=nginx --restart=Never --port=80 --expose
 
 ### Confirm that ClusterIP has been created. Also check endpoints
 
+k get svc
+k get endpoints
+
 <details><summary>show</summary>
 <p>
 
@@ -29,6 +34,10 @@ kubectl get ep # endpoints
 </details>
 
 ### Get service's ClusterIP, create a temp busybox pod and 'hit' that IP with wget
+
+k run tmp --image=busybox --rm -it --restart=Never
+wget 10.8.3.224:80
+(Curl is not installed on busybox as default)
 
 <details><summary>show</summary>
 <p>
@@ -54,6 +63,13 @@ kubectl run busybox --rm --image=busybox -it --restart=Never --env="IP=$IP" -- w
 </details>
 
 ### Convert the ClusterIP to NodePort for the same service and find the NodePort port. Hit service using Node's IP. Delete the service and the pod at the end.
+
+k edit svc NAME
+Change to NodePort
+Find node that pod is on $ k get pod -o wide
+Find the ip of that node $ k get node -o wide
+Find the port of the nodeport $ k get svc 
+k run tmp --image=busybox --rm -it --restart=Never wget 10.128.0.10:31042
 
 <details><summary>show</summary>
 <p>
@@ -117,6 +133,9 @@ kubectl delete pod nginx # Deletes the pod
 
 ### Create a deployment called foo using image 'dgkanatsios/simpleapp' (a simple server that returns hostname) and 3 replicas. Label it as 'app=foo'. Declare that containers in this pod will accept traffic on port 8080 (do NOT create a service yet)
 
+k create deploy foo --image=dgkanatsios/simpleapp --replicas=3 --port=8080
+Label is added automatically, as k8s needs something to target the pods with (and link the to the deployment). The default behaviour adds in app=NAMEOFDEPLOYMENT
+
 <details><summary>show</summary>
 <p>
 
@@ -128,6 +147,11 @@ kubectl label deployment foo --overwrite app=foo
 </details>
 
 ### Get the pod IPs. Create a temp busybox pod and try hitting them on port 8080
+
+k get pods -o wide
+Get ip and port via wget
+
+Don't forget to select pods via $ kubectl get pods -l app=foo -o wide
 
 <details><summary>show</summary>
 <p>
@@ -150,6 +174,11 @@ kubectl get po -l app=foo -o jsonpath='{range .items[*]}{.status.podIP}{"\n"}{en
 
 ### Create a service that exposes the deployment on port 6262. Verify its existence, check the endpoints
 
+k expose deploy foo --port=6262 --target-port=8080
+k get ep
+
+Well done for realising that target port is already set
+
 <details><summary>show</summary>
 <p>
 
@@ -164,6 +193,23 @@ kubectl get endpoints foo # you will see the IPs of the three replica pods, list
 </details>
 
 ### Create a temp busybox pod and connect via wget to foo service. Verify that each time there's a different hostname returned. Delete deployment and services to cleanup the cluster
+
+To create pod and connect via wget. Fails
+k run tmp --image=busybox --rm -it -- /bin/sh wget 10.8.1.29:6262
+
+hostname is just full pod name? Not sure how to verify that this is returned
+
+How to verify hostname? It is in the response body
+
+you can refer to a service by its name - its ip is not necessary
+You can use the ip, which will be the clusterip
+But port can still be used, eg foo:6262
+wget returned the various pod hostnames in the response body
+
+Originally, I was trying to ping individual pods, obviating the service
+
+Might have to exec onto the pod to succesfully used wget?
+Use wget -O- foo:6262 in order to output to stdout
 
 <details><summary>show</summary>
 <p>
@@ -182,6 +228,16 @@ kubectl delete deploy foo
 </details>
 
 ### Create an nginx deployment of 2 replicas, expose it via a ClusterIP service on port 80. Create a NetworkPolicy so that only pods with labels 'access: granted' can access the deployment and apply it
+
+Creating deployment was fine
+
+$ k create deploy nginx --image=nginx --replicas=2
+$ k expose deploy nginx --port=80 --target-port=80
+
+The logic behind the network policy took some time
+I needed to apply it to all pods with app: nginx
+And I needed to only allow ingress from pods with access: granted
+27.yaml
 
 kubernetes.io > Documentation > Concepts > Services, Load Balancing, and Networking > [Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 
@@ -220,6 +276,8 @@ spec:
 ```bash
 # Create the NetworkPolicy
 kubectl create -f policy.yaml
+
+Can't check policy as my cluster doesn't enable this
 
 # Check if the Network Policy has been created correctly
 # make sure that your cluster's network provider supports Network Policy (https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/#before-you-begin)
