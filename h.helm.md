@@ -6,6 +6,8 @@
 
 ### Creating a basic Helm chart
 
+helm create my-idiot-chart
+
 <details><summary>show</summary>
 <p>
 
@@ -17,6 +19,9 @@ helm create chart-test ## this would create a helm
 </details>
 
 ### Running a Helm chart
+
+The values.yaml file is what gets applied to the cluster?
+There is no explanation here of what these things are, what they do, etc. They are just questions...
 
 <details><summary>show</summary>
 <p>
@@ -101,3 +106,8 @@ helm pull --untar [rep/chartname] # untar the chart after downloading it
 </p>
 </details>
 
+I don't understand the helm concepts. What does it accomplish, how does it accomplish it? What are the key files? Perhaps diagram or do a short course after these exercises are complete
+Charts
+Repos
+Releases
+Deployments
