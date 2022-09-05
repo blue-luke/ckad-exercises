@@ -9,6 +9,11 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 ### Create busybox pod with two containers, each one will have the image busybox and will run the 'sleep 3600' command. Make both containers mount an emptyDir at '/etc/foo'. Connect to the second busybox, write the first column of '/etc/passwd' file to '/etc/foo/passwd'. Connect to the first busybox and write '/etc/foo/passwd' file to standard output. Delete pod.
 
+28.yaml
+Overlooked having the sleep command in both. This possibly caused the pod creation error, but I'm not sure how it would do that. I presume that busybox pods die immediately, so I got the crashloopbackoff issue as before. Make sure to use --restart=Never
+Exec onto 2nd container
+cat /etc/passwd | awk {'print $1'} >> /etc/foo/passwd
+
 <details><summary>show</summary>
 <p>
 
@@ -84,6 +89,10 @@ kubectl delete po busybox
 
 ### Create a PersistentVolume of 10Gi, called 'myvolume'. Make it have accessMode of 'ReadWriteOnce' and 'ReadWriteMany', storageClassName 'normal', mounted on hostPath '/etc/foo'. Save it on pv.yaml, add it to the cluster. Show the PersistentVolumes that exist on the cluster
 
+29.yaml
+hostpath PV require me clicking through
+Some of my values are in ""
+
 <details><summary>show</summary>
 <p>
 
@@ -119,6 +128,10 @@ kubectl get pv
 </details>
 
 ### Create a PersistentVolumeClaim for this storage class, called 'mypvc', a request of 4Gi and an accessMode of ReadWriteOnce, with the storageClassName of normal, and save it on pvc.yaml. Create it on the cluster. Show the PersistentVolumeClaims of the cluster. Show the PersistentVolumes of the cluster
+
+30.yaml
+No need to explicitly link pvc with pvs. Pvcs pick up any pv available in that namespace
+I still don't fully understand the kinds of storage in cluster, nor the relationships between pvc, pv, storageclass, storage volumes, etc...
 
 <details><summary>show</summary>
 <p>
@@ -158,6 +171,10 @@ kubectl get pv # will show as 'Bound' as well
 </details>
 
 ### Create a busybox pod with command 'sleep 3600', save it on pod.yaml. Mount the PersistentVolumeClaim to '/etc/foo'. Connect to the 'busybox' pod, and copy the '/etc/passwd' file to '/etc/foo/passwd'
+
+31.yaml
+My commands don't include /bin/sh. Perhaps include that next time? Seems to be working anyway, but might be safer
+cp /etc/passwd /etc/foo/passwd
 
 <details><summary>show</summary>
 <p>
@@ -218,6 +235,12 @@ kubectl exec busybox -it -- cp /etc/passwd /etc/foo/passwd
 
 ### Create a second pod which is identical with the one you just created (you can easily do it by changing the 'name' property on pod.yaml). Connect to it and verify that '/etc/foo' contains the 'passwd' file. Delete pods to cleanup. Note: If you can't see the file from the second pod, can you figure out why? What would you do to fix that?
 
+hostpath is a node file path, so only pods on the same node can access this data. Think through this
+
+32.yaml 
+All works
+Both pods use same pvc, which refers to one pv
+
 
 
 <details><summary>show</summary>
@@ -250,6 +273,12 @@ There are lots of different types per cloud provider [(see here)](https://kubern
 </details>
 
 ### Create a busybox pod with 'sleep 3600' as arguments. Copy '/etc/passwd' from the pod to your local folder
+
+I can manually copy-paste. But I'm not sure this works in all terminals
+Use -- COMMAND
+Use --restart=Never
+Didn't know how to copy from a pod to local:
+kubectl cp busybox:/etc/passwd ./files/33.txt
 
 <details><summary>show</summary>
 <p>
