@@ -2,6 +2,11 @@
 
 - Note: CRD is part of the new CKAD syllabus. Here are a few examples of installing custom resource into the Kubernetes API by creating a CRD.
 
+kubectl api-resources ; look into what this does
+kubectl api-versions ; lists current valid apis
+
+Fine. k8s docs, copy and modify the sample crd
+
 ## CRD in K8s
 
 ### Create a CustomResourceDefinition manifest file for an Operator with the following specifications :
@@ -11,6 +16,22 @@
 * *Scope*: `Namespaced`
 * *Names*: `<plural: operators><singular: operator><shortNames: op>`
 * *Kind*: `Operator`
+
+34.yaml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <details><summary>show</summary>
 <p>
@@ -56,6 +77,8 @@ spec:
 
 ### Create the CRD resource in the K8S API
 
+Misleading request, but it just means to apply the file
+
 <details><summary>show</summary>
 <p>
 
@@ -67,6 +90,11 @@ kubectl apply -f operator-crd.yml
 </details>
 
 ### Create custom object from the CRD
+
+Didn't know that the api version is .spec.group/.spec.group.versions.name
+I could have extrapolated this from the docs
+
+35.yaml
 
 * *Name* : `operator-sample`
 * *Kind*: `Operator`
@@ -113,3 +141,5 @@ kubectl get op
 
 </p>
 </details>
+
+If the CKAD questions are a simple as the above, then great! The real challenge will lie in coming up with a legitimate use case for my own crd. 'Chaos monkey' might be that use case

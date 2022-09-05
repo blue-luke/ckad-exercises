@@ -6,6 +6,12 @@
 
 ### Create a Dockerfile to deploy an Apache HTTP Server which hosts a custom main page
 
+Podman is open source. Docker does the same thing. Both provide a container engine for building and running images. Podman is daemonless. I don't know what a daemon is.
+
+Don't know what is necessary for a Dockerfile, but a basic one is below
+
+
+
 <details><summary>show</summary>
 <p>
 
@@ -18,6 +24,15 @@ RUN echo "Hello, World!" > /usr/local/apache2/htdocs/index.html
 </details>
 
 ### Build and see how many layers the image consists of
+
+podman build .
+
+used podman image --help to get 
+podman image inspect 8fa887cacc2c
+Where 8fa etc is the image hash id
+ctrl-f for layers showed there were 6
+
+Actual method is podman image tree 8fa887cacc2c
 
 <details><summary>show</summary>
 <p>
@@ -54,6 +69,10 @@ Image Layers
 
 ### Run the image locally, inspect its status and logs, finally test that it responds as expected
 
+podman run --name test -d -p 8080:80 8fa887cacc2c 
+
+Then localhost:8080, responds with Hello, World!
+
 <details><summary>show</summary>
 <p>
 
@@ -80,6 +99,12 @@ Hello, World!
 
 ### Run a command inside the pod to print out the index.html file
 
+podman exec ecbabdc59f88 ls
+i.e. put the command immediately after
+podman exec ecbabdc59f88 cat /usr/local/apache2/htdocs/index.html
+Because in the dockerfile we did:
+RUN echo "Hello, World!" > /usr/local/apache2/htdocs/index.html
+
 <details><summary>show</summary>
 <p>
 
@@ -91,6 +116,17 @@ Hello, World!
 </details>
 
 ### Tag the image with ip and port of a private local registry and then push the image to this registry
+
+podman tag IMAGE TAG
+
+No idea how to set up a local image registry
+- https://www.techrepublic.com/article/how-to-set-up-a-local-image-repository-with-podman/
+- Create a directory
+- Initialise it as a podman registry
+- Configure, setting local host and port
+- Push to local registry using local host, port, and labels
+
+I'm hoping that CKAD won't go into this much detail. It should only require pushing, pulling, labelling, using urls, etc
 
 <details><summary>show</summary>
 <p>
@@ -138,6 +174,8 @@ ef4b14a72d02ae0577eb0632d084c057777725c279e12ccf5b0c6e4ff5fd598b
 
 ### Run a pod with the image pushed to the registry
 
+Might be good to go back to this
+
 <details><summary>show</summary>
 <p>
 
@@ -152,6 +190,7 @@ Hello, World!
 </details>
 
 ### Log into a remote registry server and then read the credentials from the default file
+
 
 
 <details><summary>show</summary>
