@@ -10,7 +10,11 @@ Podman is open source. Docker does the same thing. Both provide a container engi
 
 Don't know what is necessary for a Dockerfile, but a basic one is below
 
+FROM imagename [this is the only necessary thing]
 
+RUN
+
+COMMAND
 
 <details><summary>show</summary>
 <p>

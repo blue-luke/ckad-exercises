@@ -93,6 +93,16 @@ helm repo index [DIR] [flags]
 </p>
 </details>
 
+### List charts in repos
+
+To list all charts in a repo:
+
+helm search repo -r NAME
+
+To search a repo
+
+helm search repo STRING
+
 ### Download a Helm chart from a repository 
 
 <details><summary>show</summary>
@@ -105,6 +115,11 @@ helm pull --untar [rep/chartname] # untar the chart after downloading it
 
 </p>
 </details>
+
+### Install a chart
+
+helm install NAME CHART --generate-name
+helm install CHART --generate-name
 
 I don't understand the helm concepts. What does it accomplish, how does it accomplish it? What are the key files? Perhaps diagram or do a short course after these exercises are complete
 Charts
